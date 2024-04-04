@@ -1,0 +1,137 @@
+// Copyright 2024 Nirupama Poojari
+#include <bits/stdc++.h>
+#include <iostream>
+#include <iomanip>
+#include <utility>
+#include <thread>
+#include <future>
+#include <string>
+#include <cstdlib>
+using std::cout, std::endl, std::cin;
+/**
+ * Determine what numbers are prime numbers
+ * @param int n
+ */
+bool isPrime(int n) {  // isPrime() starts here
+  // 2 is the smallest prime number
+  if (n < 2) return false;
+  if (n == 2) return true;
+ 
+  for (int j = 2; j < n; j++) {   // for-loop starts here
+    if ( (n % j) == 0)
+      return false;
+  }  // for-loop ends here
+  return true;
+}  // isPrime() ends here
+ 
+ 
+void serial(int limit) {
+      int count = 0;
+      for (int i = 2; i < limit; i++) {
+          if (isPrime(i)) {
+              count++;
+          }
+      }
+      cout << "Found " << count << " prime numbers < " << limit << endl;
+}
+ 
+int PrimeRange(int i) {
+  int ret = 0;
+  if (isPrime(i)) {
+        ret++;
+  }
+  if (isPrime(i + 1)) {
+        ret++;
+  }
+  return ret;
+}
+void ineff(int num) {
+    int count1 = 0;
+    for (int i = 0; i < num; ) {
+        std::thread t1(PrimeRange, i);
+        std::future<int> result(std::async(std::launch::async, PrimeRange,
+                                          i));
+        count1 += result.get();
+        i+=4;
+        t1.join();
+    }
+    int count2 = 0;
+    for (int i = 2; i < num; ) {
+        std::thread t2(PrimeRange, i);
+        std::future<int> result(std::async(std::launch::async, PrimeRange,
+                                          i));
+        count2 += result.get();
+        i+=4;
+        t2.join();
+    }
+    // t1.join();
+    // t2.join();
+    cout << "Found " << count1 + count2 << " prime numbers < " << num << endl;
+}
+ 
+void eff(int num) {
+    int count1 = 0;
+    std::thread t1([&]() {
+    for (int i = 0; i < num; ) {
+        count1 += PrimeRange(i);
+        i+=4;
+    }
+    });
+    int count2 = 0;
+    std::thread t2([&]() {
+    for (int i = 2; i < num;) {
+        count2 += PrimeRange(i);
+        i+=4;
+    }
+    });
+    t1.join();
+    t2.join();
+    cout << "Found " << count1 + count2 << " prime numbers < " << num << endl;
+}
+ 
+int checkDigit(char* argv1, char* argv2) {  // checkDigit() starts here
+    bool isdigit1 = true;
+    bool isdigit2 = true;
+    std::string str1(argv1);
+    std::string str2(argv2);
+    for (size_t i = 0; i < str1.length(); i++) {   // for loop starts here
+        if (!isdigit(str1[i])) {  // if starts here
+            isdigit1 = false;
+            break;
+        }  // if ends here
+    }   // for loop ends here
+    for (size_t i = 0; i < str2.length(); i++) {   // for loop starts here
+      if (!isdigit(str2[i])) {  // if starts here
+            isdigit1 = false;
+            break;
+        }  // if ends here
+    }   // for loop ends here
+    if (!isdigit1 || !isdigit2) {   // if starts here
+        cout << "Error: arguments must be integers" << endl;
+        return -1;
+    }      // if ends here
+    return 0;
+}  // checkDigit() ends here
+ 
+int main(int argc, char *argv[]) {  // main() starts here
+  if (argc != 3) {  // if starts here
+      cout << "Usage:  primesMT maxToCheck mode" << endl;
+      return 1;
+  } else {
+      if (checkDigit(argv[1], argv[2]) != 0) {   // if starts here
+      return 0;
+    } else {
+      int limit = std::stoi(argv[1]);
+      int mode = std::stoi(argv[2]);
+      if (mode == 0) {
+        // cout << "debug 1" << endl;
+        serial(limit);
+      } else if (mode == 1) {
+        ineff(limit);
+      } else {
+        eff(limit);
+      }
+    }
+  }
+  return 0;
+}   // main() ends here
